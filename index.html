@@ -220,7 +220,7 @@
   </div>
 
   <footer>
-    @NoName Najah 
+    @NoName NaJah
   </footer>
 
   <div class="modal" id="imageModal" onclick="closeModal()">
@@ -287,42 +287,19 @@
     else if (month >= 9 && month <= 11) spawn('leaf', 18); // Autumn
     else spawn('snow', 24);                                // Winter
 
-    // ===== IndexedDB (original logic) =====
-    let db;
-    const request = indexedDB.open('granaryDB', 1);
-
-    request.onupgradeneeded = (e) => {
-      db = e.target.result;
-      db.createObjectStore('memories', { keyPath: 'id', autoIncrement: true });
-    };
-
-    request.onsuccess = (e) => {
-      db = e.target.result;
-      loadFromDB();
-    };
-
-    request.onerror = () => alert('ไม่สามารถเปิดฐานข้อมูลได้');
+    // ===== Google Sheets + Drive API =====
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec';
 
     const gallery = document.getElementById('gallery');
 
-    function compressImage(file, maxWidth = 800, quality = 0.7) {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const scale = Math.min(1, maxWidth / img.width);
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width * scale;
-            canvas.height = img.height * scale;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas.toDataURL('image/jpeg', quality));
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
+    function loadFromAPI() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          gallery.innerHTML = '';
+          data.reverse().forEach(renderCard);
+        })
+        .catch(() => alert('โหลดข้อมูลไม่สำเร็จ'));
     }
 
     async function addMemory() {
@@ -335,45 +312,28 @@
       }
 
       const imageData = await compressImage(imageInput.files[0]);
-      const memory = { text: textInput.value || 'ความทรงจำแสนพิเศษ 💗', image: imageData };
 
-      const tx = db.transaction('memories', 'readwrite');
-      tx.objectStore('memories').add(memory);
-      tx.oncomplete = () => loadFromDB();
-
-      imageInput.value = '';
-      textInput.value = '';
-    }
-
-    function loadFromDB() {
-      gallery.innerHTML = '';
-      const tx = db.transaction('memories', 'readonly');
-      const store = tx.objectStore('memories');
-      store.openCursor().onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-          renderCard(cursor.value);
-          cursor.continue();
-        }
-      };
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          image: imageData,
+          text: textInput.value || 'ความทรงจำแสนพิเศษ 💗'
+        })
+      }).then(() => {
+        imageInput.value = '';
+        textInput.value = '';
+        loadFromAPI();
+      }).catch(() => alert('อัปโหลดไม่สำเร็จ'));
     }
 
     function renderCard(data) {
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
-        <button class="delete-btn" onclick="deleteCard(${data.id})">✕</button>
         <img src="${data.image}" onclick="openModal(this.src)" />
         <div class="text">${data.text}</div>
       `;
       gallery.prepend(card);
-    }
-
-    function deleteCard(id) {
-      if (!confirm('ลบความทรงจำนี้ใช่ไหม 🥺')) return;
-      const tx = db.transaction('memories', 'readwrite');
-      tx.objectStore('memories').delete(id);
-      tx.oncomplete = () => loadFromDB();
     }
 
     function openModal(src) {
@@ -386,6 +346,9 @@
     function closeModal() {
       document.getElementById('imageModal').style.display = 'none';
     }
+
+    // initial load
+    loadFromAPI();
   </script>
 
 </body>
