@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><style>@keyframes beat{0%{transform:scale(1);}50%{transform:scale(1.15);}100%{transform:scale(1);}}</style><text x='50%' y='70%' text-anchor='middle' font-size='80' style='animation:beat 1s infinite;'>❤️</text></svg>">
+  <title>Memory Moniter</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+
+    body {
+      font-family: 'Zen Maru Gothic', 'Segoe UI', sans-serif;
+      background: linear-gradient(180deg, #fffaf3, #ffeef2);
+      margin: 0;
+      padding: 0;
+      color: #4a4a4a;
+      overflow-x: hidden;
+    }
+
+    /* ===== Seasonal background ===== */
+    .petal, .leaf, .snow {
+      position: fixed;
+      top: -10vh;
+      pointer-events: none;
+      animation: fall linear infinite;
+      z-index: 0;
+      opacity: 0.8;
+    }
+
+    .petal {
+      width: 14px;
+      height: 14px;
+      background: pink;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(45deg);
+    }
+
+    .leaf {
+      width: 16px;
+      height: 16px;
+      background: #d87c2a;
+      border-radius: 0 50% 50% 50%;
+    }
+
+    .snow {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh) rotate(360deg);
+      }
+    }
+
+    header {
+      position: relative;
+      text-align: center;
+      padding: 28px 20px 20px;
+      background: #ffffffcc;
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid #f2dede;
+      z-index: 2;
+    }
+
+    header h1 {
+      margin: 0;
+      color: #d96c8f;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      margin-top: 8px;
+      font-size: 15px;
+      color: #888;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      padding: 24px 18px 40px;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .form-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      margin-bottom: 36px;
+    }
+
+    .form-box h3 {
+      margin-top: 0;
+      margin-bottom: 14px;
+      font-weight: 600;
+      color: #c95b7c;
+    }
+
+    .form-box input, .form-box textarea {
+      width: 100%;
+      margin-bottom: 14px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid #f0d7df;
+      font-size: 14px;
+      background: #fffafc;
+    }
+
+    .form-box button {
+      background: linear-gradient(135deg, #f6a5c0, #e97aa2);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+      box-shadow: 0 6px 14px rgba(233,122,162,0.35);
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 22px;
+      overflow: hidden;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+      animation: fadeIn 0.5s ease;
+      position: relative;
+    }
+
+    .card img {
+      width: 100%;
+      height: 210px;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+    .card .text {
+      padding: 14px 14px 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #555;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255,255,255,0.85);
+      color: #c95b7c;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-size: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(20,10,15,0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal img {
+      max-width: 92%;
+      max-height: 92%;
+      border-radius: 22px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    footer {
+      text-align: center;
+      padding: 18px;
+      color: #aaa;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1><span style="font-size:34px;">🌸</span> ความทรงจำของเรา <span style="font-size:34px;">🍙</span></h1>
+    <p id="anniversaryText"></p>
+    <p id="countdownText" style="margin-top:6px;font-size:14px;color:#b86b82;"></p>
+  </header>
+
+  <div class="container">
+
+    <div class="form-box">
+      <h3>เพิ่มความทรงจำใหม่ 📸</h3>
+      <input type="file" id="imageInput" accept="image/*" />
+      <textarea id="textInput" rows="3" placeholder="เขียนความทรงจำตรงนี้..."></textarea>
+      <button onclick="addMemory()">บันทึกความทรงจำ</button>
+    </div>
+
+    <div class="gallery" id="gallery"></div>
+
+  </div>
+
+  <footer>
+    @NoName Najah 
+  </footer>
+
+  <div class="modal" id="imageModal" onclick="closeModal()">
+    <img id="modalImg" />
+  </div>
+
+  <script>
+    // ===== Anniversary =====
+    const startDate = new Date(2022, 10, 18); // 18-11-2022
+    const anniversaryText = document.getElementById('anniversaryText');
+    const countdownText = document.getElementById('countdownText');
+
+    function updateAnniversary() {
+      const now = new Date();
+
+      // ปี / วัน
+      let years = now.getFullYear() - startDate.getFullYear();
+      const thisYearAnniv = new Date(now.getFullYear(), startDate.getMonth(), startDate.getDate());
+      if (now < thisYearAnniv) years--;
+
+      const lastAnniv = new Date(startDate.getFullYear() + years, startDate.getMonth(), startDate.getDate());
+      const days = Math.floor((now - lastAnniv) / (1000 * 60 * 60 * 24));
+
+      // เวลา (ชั่วโมง นาที วินาที)
+      const diffMs = now - lastAnniv;
+      const hours = Math.floor(diffMs / (1000 * 60 * 60)) % 24;
+      const minutes = Math.floor(diffMs / (1000 * 60)) % 60;
+      const seconds = Math.floor(diffMs / 1000) % 60;
+
+      anniversaryText.textContent = `💖 คบกันมา ${years} ปี ${days} วัน ⏰ ${hours} ชม. ${minutes} นาที ${seconds} วิ`;
+
+      // ===== Countdown to next anniversary =====
+      let nextAnniv = new Date(lastAnniv);
+      nextAnniv.setFullYear(lastAnniv.getFullYear() + 1);
+
+      const diffNext = nextAnniv - now;
+      const d = Math.floor(diffNext / (1000 * 60 * 60 * 24));
+      const h = Math.floor(diffNext / (1000 * 60 * 60)) % 24;
+      const m = Math.floor(diffNext / (1000 * 60)) % 60;
+      const s = Math.floor(diffNext / 1000) % 60;
+
+      countdownText.textContent = `🎉 อีก ${d} วัน ${h} ชม. ${m} นาที ${s} วิ จะครบรอบปีหน้า 💕`;
+    }
+
+    updateAnniversary();
+    setInterval(updateAnniversary, 1000);
+
+    // ===== Seasonal Animation =====
+    const month = new Date().getMonth() + 1;
+
+    function spawn(className, count) {
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = className;
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.animationDuration = 6 + Math.random() * 6 + 's';
+        el.style.opacity = Math.random();
+        document.body.appendChild(el);
+      }
+    }
+
+    if (month >= 3 && month <= 4) spawn('petal', 20);      // Spring
+    else if (month >= 6 && month <= 8) spawn('leaf', 12);  // Summer
+    else if (month >= 9 && month <= 11) spawn('leaf', 18); // Autumn
+    else spawn('snow', 24);                                // Winter
+
+    // ===== IndexedDB (original logic) =====
+    let db;
+    const request = indexedDB.open('granaryDB', 1);
+
+    request.onupgradeneeded = (e) => {
+      db = e.target.result;
+      db.createObjectStore('memories', { keyPath: 'id', autoIncrement: true });
+    };
+
+    request.onsuccess = (e) => {
+      db = e.target.result;
+      loadFromDB();
+    };
+
+    request.onerror = () => alert('ไม่สามารถเปิดฐานข้อมูลได้');
+
+    const gallery = document.getElementById('gallery');
+
+    function compressImage(file, maxWidth = 800, quality = 0.7) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const scale = Math.min(1, maxWidth / img.width);
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function addMemory() {
+      const imageInput = document.getElementById('imageInput');
+      const textInput = document.getElementById('textInput');
+
+      if (!imageInput.files[0]) {
+        alert('เลือกรูปก่อนน้า 😊');
+        return;
+      }
+
+      const imageData = await compressImage(imageInput.files[0]);
+      const memory = { text: textInput.value || 'ความทรงจำแสนพิเศษ 💗', image: imageData };
+
+      const tx = db.transaction('memories', 'readwrite');
+      tx.objectStore('memories').add(memory);
+      tx.oncomplete = () => loadFromDB();
+
+      imageInput.value = '';
+      textInput.value = '';
+    }
+
+    function loadFromDB() {
+      gallery.innerHTML = '';
+      const tx = db.transaction('memories', 'readonly');
+      const store = tx.objectStore('memories');
+      store.openCursor().onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          renderCard(cursor.value);
+          cursor.continue();
+        }
+      };
+    }
+
+    function renderCard(data) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <button class="delete-btn" onclick="deleteCard(${data.id})">✕</button>
+        <img src="${data.image}" onclick="openModal(this.src)" />
+        <div class="text">${data.text}</div>
+      `;
+      gallery.prepend(card);
+    }
+
+    function deleteCard(id) {
+      if (!confirm('ลบความทรงจำนี้ใช่ไหม 🥺')) return;
+      const tx = db.transaction('memories', 'readwrite');
+      tx.objectStore('memories').delete(id);
+      tx.oncomplete = () => loadFromDB();
+    }
+
+    function openModal(src) {
+      const modal = document.getElementById('imageModal');
+      const modalImg = document.getElementById('modalImg');
+      modalImg.src = src;
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>
