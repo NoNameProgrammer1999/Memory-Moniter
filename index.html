@@ -220,7 +220,7 @@
   </div>
 
   <footer>
-    @NoName NaJah
+    Made with 💖 for us
   </footer>
 
   <div class="modal" id="imageModal" onclick="closeModal()">
@@ -300,6 +300,27 @@
           data.reverse().forEach(renderCard);
         })
         .catch(() => alert('โหลดข้อมูลไม่สำเร็จ'));
+    }
+
+    // ===== Image Compress =====
+    function compressImage(file, maxWidth = 800, quality = 0.7) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const scale = Math.min(1, maxWidth / img.width);
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width * scale;
+            canvas.height = img.height * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     async function addMemory() {
