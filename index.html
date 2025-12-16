@@ -72,18 +72,6 @@ button{
   cursor:pointer;
 }
 
-.delete{
-  position:absolute;
-  top:8px;
-  right:8px;
-  background:#fff;
-  border:none;
-  border-radius:50%;
-  width:30px;
-  height:30px;
-  cursor:pointer;
-}
-
 .text{padding:14px}
 
 /* MODAL */
@@ -94,6 +82,7 @@ button{
   background:rgba(0,0,0,.8);
   justify-content:center;
   align-items:center;
+  z-index:999;
 }
 
 .modal img{
@@ -121,6 +110,7 @@ button{
         target="hidden_iframe"
         onsubmit="afterSubmit()">
 
+    <!-- 🔴 สำคัญ: name ต้องตรงกับ Apps Script -->
     <input type="file" name="image" accept="image/*" required>
     <textarea name="text" placeholder="เขียนความทรงจำ..."></textarea>
     <button type="submit">บันทึก</button>
@@ -130,6 +120,7 @@ button{
 <div class="gallery" id="gallery"></div>
 </div>
 
+<!-- iframe สำหรับรับ POST -->
 <iframe name="hidden_iframe" style="display:none"></iframe>
 
 <!-- MODAL -->
@@ -141,25 +132,31 @@ button{
 /* ===== CONFIG ===== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec';
 
+let modal, modalImg;
+
 /* ===== AFTER SUBMIT ===== */
 function afterSubmit(){
   setTimeout(() => {
     document.getElementById('memoryForm').reset();
     loadFromAPI();
-  }, 1200);
+  }, 1500);
 }
 
 /* ===== JSONP LOAD ===== */
 window.loadMemories = function(data){
   const gallery = document.getElementById('gallery');
+  if (!gallery) return;
+
   gallery.innerHTML = '';
 
   data.reverse().forEach(d=>{
+    if(!d.image) return;
+
     const c = document.createElement('div');
     c.className = 'card';
     c.innerHTML = `
-      <img src="${d.image}" onclick="openModal(this.src)">
-      <div class="text">${d.text}</div>
+      <img src="${d.image}" onclick="openModal('${d.image}')">
+      <div class="text">${d.text || ''}</div>
     `;
     gallery.appendChild(c);
   });
@@ -184,7 +181,12 @@ function closeModal(){
   modal.style.display = 'none';
 }
 
-loadFromAPI();
+/* ===== START ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  modal = document.getElementById('modal');
+  modalImg = document.getElementById('modalImg');
+  loadFromAPI();
+});
 </script>
 
 </body>
