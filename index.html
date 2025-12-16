@@ -1,45 +1,95 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Love Story - 日記</title>
-    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Gallery Me</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; background:#f7f7f7;}
+  #gallery { display:grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap:15px;}
+  .card { position:relative; border:3px solid #ffc0cb; padding:10px; background:white; border-radius:10px;}
+  .card img { width:100%; cursor:pointer; border-radius:8px; }
+  .desc { margin-top:5px; font-size:14px;}
+  .del-btn { position:absolute; top:5px; right:5px; background:red; color:white; border:none; border-radius:5px; cursor:pointer; }
+  #addForm { margin-bottom:20px; display:flex; gap:10px; }
+  input, textarea { padding:5px; border-radius:5px; border:1px solid #ccc; flex:1;}
+  button { padding:5px 10px; border-radius:5px; border:none; background:#ff69b4; color:white; cursor:pointer;}
+  #countdown { margin-bottom:20px; font-size:18px; font-weight:bold;}
+</style>
 </head>
 <body>
-    <header class="header">
-        <h1>💕 Our Love Story - 私たちの日記 💕</h1>
-        <div id="anniversary-counter" class="counter-box">
-            <p><strong>💖 ครบรอบกันมา:</strong> <span id="days-since">...</span> วัน</p>
-            <p><strong>⏳ ครบรอบปีนี้อีก:</strong> <span id="countdown-days">...</span> วัน</p>
-        </div>
-    </header>
 
-    <main class="container">
-        <section class="add-photo-section">
-            <h2>✨ เพิ่มความทรงจำใหม่</h2>
-            <form id="add-photo-form">
-                <input type="text" id="add-image-url" placeholder="ลิงก์รูปภาพ (Drive uc?id=...)" required>
-                <input type="text" id="add-caption" placeholder="คำอธิบายภาพ">
-                <input type="date" id="add-date">
-                <button type="submit">เพิ่มรูปภาพ</button>
-            </form>
-        </section>
-        
-        <section id="photo-gallery" class="gallery"></section>
-    </main>
+<h1>Gallery Me</h1>
+<div id="countdown"></div>
 
-    <footer class="footer">
-        <p>© 2025 Love Memory. Made with ❤️</p>
-    </footer>
+<form id="addForm">
+  <input type="file" id="fileInput" accept="image/*" required>
+  <textarea id="descInput" placeholder="คำอธิบาย..."></textarea>
+  <button type="submit">เพิ่มรูป</button>
+</form>
 
-    <div id="image-modal" class="modal">
-        <span class="close-btn">&times;</span>
-        <img class="modal-content" id="expanded-img">
-        <div id="caption-text"></div>
-    </div>
+<div id="gallery"></div>
 
-    <script src="script.js"></script>
+<script>
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbyxmqOjWHyHcTpr1fg71d5fguQ8zHsdDMu68v0U-fXuLEC9kx4aKmsWdmajsopqpzIt5w/exec'; // URL Web App
+const ANNIVERSARY = new Date('2022-11-18');
+
+function updateCountdown(){
+  const now = new Date();
+  let nextAnniv = new Date(now.getFullYear(), ANNIVERSARY.getMonth(), ANNIVERSARY.getDate());
+  if(now>nextAnniv) nextAnniv.setFullYear(nextAnniv.getFullYear()+1);
+  const diff = nextAnniv - now;
+  const days = Math.floor(diff/1000/60/60/24);
+  const hours = Math.floor(diff/1000/60/60)%24;
+  const minutes = Math.floor(diff/1000/60)%60;
+  const seconds = Math.floor(diff/1000)%60;
+  document.getElementById('countdown').innerText = 
+    `นับถอยหลังวันครบรอบ: ${days} วัน ${hours} ชั่วโมง ${minutes} นาที ${seconds} วินาที`;
+}
+setInterval(updateCountdown,1000);
+updateCountdown();
+
+async function loadGallery(){
+  const res = await fetch(WEBAPP_URL);
+  const data = await res.json();
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = '';
+  data.forEach(item=>{
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML = `
+      <button class="del-btn">ลบ</button>
+      <img src="${item[1]}" alt="">
+      <div class="desc">${item[2]}</div>
+    `;
+    card.querySelector('.del-btn').onclick = async ()=>{
+      await fetch(`${WEBAPP_URL}?url=${encodeURIComponent(item[1])}`,{method:'DELETE'});
+      loadGallery();
+    };
+    card.querySelector('img').onclick = ()=>{
+      window.open(item[1],'_blank');
+    };
+    gallery.appendChild(card);
+  });
+}
+loadGallery();
+
+document.getElementById('addForm').onsubmit = async e=>{
+  e.preventDefault();
+  const file = document.getElementById('fileInput').files[0];
+  const desc = document.getElementById('descInput').value;
+  const reader = new FileReader();
+  reader.onload = async ()=>{
+    const base64 = reader.result.split(',')[1];
+    await fetch(WEBAPP_URL,{
+      method:'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: `file=${encodeURIComponent(base64)}&filename=${encodeURIComponent(file.name)}&mimeType=${file.type}&description=${encodeURIComponent(desc)}`
+    });
+    loadGallery();
+  };
+  reader.readAsDataURL(file);
+};
+</script>
+
 </body>
 </html>
