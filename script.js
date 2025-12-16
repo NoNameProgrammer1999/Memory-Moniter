@@ -28,13 +28,12 @@ function upload() {
 
   const reader = new FileReader();
   reader.onloadend = () => {
-    const url =
-      API +
-      "?image=" + encodeURIComponent(reader.result) +
-      "&text=" + encodeURIComponent(text);
+    const params = new URLSearchParams({
+      image: reader.result,
+      text: text
+    });
 
-    fetch(url)
-      .then(r => r.json())
+    fetch(API + "?" + params.toString())
       .then(() => load());
   };
   reader.readAsDataURL(file);
@@ -76,3 +75,4 @@ document.getElementById("modal").style.display = "none";
 
 
 load();
+
