@@ -23,19 +23,23 @@ updateTime();
 
 
 function upload() {
-const file = document.getElementById("image").files[0];
-const text = document.getElementById("text").value;
+  const file = document.getElementById("image").files[0];
+  const text = document.getElementById("text").value;
 
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const url =
+      API +
+      "?image=" + encodeURIComponent(reader.result) +
+      "&text=" + encodeURIComponent(text);
 
-const reader = new FileReader();
-reader.onloadend = () => {
-fetch(API, {
-method: "POST",
-body: JSON.stringify({ image: reader.result, text })
-}).then(() => load());
-};
-reader.readAsDataURL(file);
+    fetch(url)
+      .then(r => r.json())
+      .then(() => load());
+  };
+  reader.readAsDataURL(file);
 }
+
 
 
 function load() {
@@ -68,6 +72,7 @@ document.getElementById("modalImg").src = src;
 function closeModal() {
 document.getElementById("modal").style.display = "none";
 }
+
 
 
 load();
