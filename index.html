@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><style>@keyframes beat{0%{transform:scale(1);}50%{transform:scale(1.15);}100%{transform:scale(1);}}</style><text x='50%' y='70%' text-anchor='middle' font-size='80' style='animation:beat 1s infinite;'>❤️</text></svg>">
-  <title>Memory Moniter</title>
+  <title>🌸 Granary Love 🌸</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
 
@@ -287,19 +287,25 @@
     else if (month >= 9 && month <= 11) spawn('leaf', 18); // Autumn
     else spawn('snow', 24);                                // Winter
 
-    // ===== Google Sheets + Drive API =====
+    // ===== Google Sheets API (JSONP – no CORS) =====
     const API_URL = 'https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec';
 
     const gallery = document.getElementById('gallery');
 
+    // JSONP callback
+    function loadMemories(data) {
+      gallery.innerHTML = '';
+      data.reverse().forEach(renderCard);
+    }
+
     function loadFromAPI() {
-      fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-          gallery.innerHTML = '';
-          data.reverse().forEach(renderCard);
-        })
-        .catch(() => alert('โหลดข้อมูลไม่สำเร็จ'));
+      const oldScript = document.getElementById('jsonp');
+      if (oldScript) oldScript.remove();
+
+      const script = document.createElement('script');
+      script.id = 'jsonp';
+      script.src = API_URL + '?callback=loadMemories';
+      document.body.appendChild(script);
     }
 
     // ===== Image Compress =====
@@ -322,28 +328,6 @@
         reader.readAsDataURL(file);
       });
     }
-
-    async function addMemory() {
-      const imageInput = document.getElementById('imageInput');
-      const textInput = document.getElementById('textInput');
-
-      if (!imageInput.files[0]) {
-        alert('เลือกรูปก่อนน้า 😊');
-        return;
-      }
-
-      const imageData = await compressImage(imageInput.files[0]);
-
-      fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({
-          image: imageData,
-          text: textInput.value || 'ความทรงจำแสนพิเศษ 💗'
-        })
-      }).then(() => {
-        imageInput.value = '';
-        textInput.value = '';
-        loadFromAPI();
       }).catch(() => alert('อัปโหลดไม่สำเร็จ'));
     }
 
