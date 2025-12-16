@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml"
 href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='70%' text-anchor='middle' font-size='80'>❤️</text></svg>">
 
-<title>Granary Love 💖</title>
+<title>Memory Moniter</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
@@ -125,7 +125,6 @@ button{
 <div class="gallery" id="gallery"></div>
 </div>
 
-<!-- Modal -->
 <div class="modal" id="modal" onclick="closeModal()">
   <img id="modalImg">
 </div>
@@ -152,12 +151,12 @@ function updateAnniversary(){
   const m = Math.floor(diff/60000)%60;
   const s = Math.floor(diff/1000)%60;
 
-  document.getElementById('anniversary').textContent =
+  anniversary.textContent =
     `คบกันมา ${years} ปี ${d} วัน ${h} ชม. ${m} นาที ${s} วิ`;
 
   const next = new Date(last.getFullYear()+1,10,18);
   const left = next-now;
-  document.getElementById('countdown').textContent =
+  countdown.textContent =
     `🎉 อีก ${Math.floor(left/86400000)} วัน จะครบรอบปีหน้า`;
 }
 setInterval(updateAnniversary,1000);
@@ -179,12 +178,15 @@ window.loadMemories = function(data){
 };
 
 function loadFromAPI(){
+  const old=document.getElementById('jsonp');
+  if(old) old.remove();
   const s=document.createElement('script');
+  s.id='jsonp';
   s.src=API_URL+'?callback=loadMemories';
   document.body.appendChild(s);
 }
 
-/* ===== ADD ===== */
+/* ===== IMAGE COMPRESS ===== */
 function compressImage(file){
   return new Promise(res=>{
     const r=new FileReader();
@@ -204,38 +206,6 @@ function compressImage(file){
   });
 }
 
-window.addMemory = async function(){
-  const img=document.getElementById('imageInput').files[0];
-  if(!img){alert('เลือกรูปก่อน');return;}
-
-  const imageData=await compressImage(img);
-  fetch(API_URL,{
-    method:'POST',
-    body:JSON.stringify({
-      image:imageData,
-      text:document.getElementById('textInput').value
-    })
-  }).then(loadFromAPI);
-};
-
-/* ===== DELETE ===== */
-function deleteMemory(id){
-  if(!confirm('ลบความทรงจำนี้?')) return;
-  fetch(API_URL+'?id='+id,{method:'DELETE'}).then(loadFromAPI);
-}
-
-/* ===== MODAL ===== */
-function openModal(src){
-  document.getElementById('modalImg').src=src;
-  document.getElementById('modal').style.display='flex';
-}
-function closeModal(){
-  document.getElementById('modal').style.display='none';
-}
-
-loadFromAPI();
-</script>
-
-</body>
-</html>
-
+/* ===== ADD ===== */
+async function addMemory(){
+  const img=document.getElementById('imageInput').files[0]()
