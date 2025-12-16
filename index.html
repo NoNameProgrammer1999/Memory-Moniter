@@ -82,12 +82,11 @@ button{
   width:30px;
   height:30px;
   cursor:pointer;
-  font-size:16px;
 }
 
 .text{padding:14px}
 
-/* ===== MODAL ===== */
+/* MODAL */
 .modal{
   display:none;
   position:fixed;
@@ -95,7 +94,6 @@ button{
   background:rgba(0,0,0,.8);
   justify-content:center;
   align-items:center;
-  z-index:999;
 }
 
 .modal img{
@@ -110,21 +108,31 @@ button{
 
 <header>
   <h1>💖 ความทรงจำของเรา</h1>
-  <p id="anniversary"></p>
-  <p id="countdown"></p>
 </header>
 
 <div class="container">
 
+<!-- ✅ FORM POST -->
 <div class="form-box">
-  <input type="file" id="imageInput" accept="image/*">
-  <textarea id="textInput" placeholder="เขียนความทรงจำ..."></textarea>
-  <button onclick="addMemory()">บันทึก</button>
+  <form id="memoryForm"
+        action="https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec"
+        method="POST"
+        enctype="multipart/form-data"
+        target="hidden_iframe"
+        onsubmit="afterSubmit()">
+
+    <input type="file" name="image" accept="image/*" required>
+    <textarea name="text" placeholder="เขียนความทรงจำ..."></textarea>
+    <button type="submit">บันทึก</button>
+  </form>
 </div>
 
 <div class="gallery" id="gallery"></div>
 </div>
 
+<iframe name="hidden_iframe" style="display:none"></iframe>
+
+<!-- MODAL -->
 <div class="modal" id="modal" onclick="closeModal()">
   <img id="modalImg">
 </div>
@@ -133,89 +141,23 @@ button{
 /* ===== CONFIG ===== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec';
 
-/* ===== IMAGE COMPRESS ===== */
-function compressImage(file){
-  return new Promise(res=>{
-    const r = new FileReader();
-    r.onload = e=>{
-      const img = new Image();
-      img.onload = ()=>{
-        const c = document.createElement('canvas');
-        const scale = Math.min(1, 800 / img.width);
-        c.width = img.width * scale;
-        c.height = img.height * scale;
-        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-        res(c.toDataURL('image/jpeg', 0.7));
-      };
-      img.src = e.target.result;
-    };
-    r.readAsDataURL(file);
-  });
+/* ===== AFTER SUBMIT ===== */
+function afterSubmit(){
+  setTimeout(() => {
+    document.getElementById('memoryForm').reset();
+    loadFromAPI();
+  }, 1200);
 }
-
-/* ===== ADD MEMORY ===== */
-window.addMemory = async function () {
-  const fileInput = document.getElementById('imageInput');
-  const textInput = document.getElementById('textInput');
-  const img = fileInput.files[0];
-
-  if (!img) {
-    alert('กรุณาเลือกรูปก่อน');
-    return;
-  }
-
-  const imageData = await compressImage(img);
-
-  await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      image: imageData,
-      text: textInput.value
-    })
-  });
-
-  fileInput.value = '';
-  textInput.value = '';
-  loadFromAPI();
-};
-
-/* ===== DELETE ===== */
-window.deleteMemory = async function(id){
-  if(!confirm('ลบความทรงจำนี้?')) return;
-
-  await fetch(API_URL, {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      action:'delete',
-      id:id
-    })
-  });
-
-  loadFromAPI();
-};
-
-/* ===== MODAL ===== */
-window.openModal = function(src){
-  document.getElementById('modalImg').src = src;
-  document.getElementById('modal').style.display = 'flex';
-};
-window.closeModal = function(){
-  document.getElementById('modal').style.display = 'none';
-};
 
 /* ===== JSONP LOAD ===== */
 window.loadMemories = function(data){
   const gallery = document.getElementById('gallery');
-  if (!gallery) return;
+  gallery.innerHTML = '';
 
-  gallery.innerHTML='';
   data.reverse().forEach(d=>{
-    const c=document.createElement('div');
-    c.className='card';
-    c.innerHTML=`
-      <button class="delete" onclick="deleteMemory('${d.id}')">🗑</button>
+    const c = document.createElement('div');
+    c.className = 'card';
+    c.innerHTML = `
       <img src="${d.image}" onclick="openModal(this.src)">
       <div class="text">${d.text}</div>
     `;
@@ -230,16 +172,20 @@ function loadFromAPI(){
   const s = document.createElement('script');
   s.id = 'jsonp';
   s.src = API_URL + '?callback=loadMemories';
-
-  (document.body || document.documentElement).appendChild(s);
+  document.body.appendChild(s);
 }
 
-/* ===== START AFTER DOM READY ===== */
-document.addEventListener('DOMContentLoaded', () => {
-  loadFromAPI();
-});
-</script>
+/* ===== MODAL ===== */
+function openModal(src){
+  modal.style.display = 'flex';
+  modalImg.src = src;
+}
+function closeModal(){
+  modal.style.display = 'none';
+}
 
+loadFromAPI();
+</script>
 
 </body>
 </html>
