@@ -62,7 +62,7 @@ async function loadGallery(){
       <div class="desc">${item[2]}</div>
     `;
     card.querySelector('.del-btn').onclick = async ()=>{
-      await fetch(`${WEBAPP_URL}?url=${encodeURIComponent(item[1])}`,{method:'DELETE'});
+      await fetch(`${WEBAPP_URL}?url=${encodeURIComponent(item[1])}`,{method:'DELETE',mode:'cors'});
       loadGallery();
     };
     card.querySelector('img').onclick = ()=>{
@@ -82,6 +82,7 @@ document.getElementById('addForm').onsubmit = async e=>{
     const base64 = reader.result.split(',')[1];
     await fetch(WEBAPP_URL,{
       method:'POST',
+      mode: 'cors',
       headers: {'Content-Type':'application/x-www-form-urlencoded'},
       body: `file=${encodeURIComponent(base64)}&filename=${encodeURIComponent(file.name)}&mimeType=${file.type}&description=${encodeURIComponent(desc)}`
     });
@@ -93,3 +94,4 @@ document.getElementById('addForm').onsubmit = async e=>{
 
 </body>
 </html>
+
