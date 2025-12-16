@@ -33,7 +33,7 @@ header{
   box-shadow:0 8px 24px rgba(0,0,0,.06);
 }
 
-.form-box input,textarea{
+input,textarea{
   width:100%;
   margin-bottom:12px;
   padding:10px;
@@ -45,7 +45,7 @@ button{
   background:#e97aa2;
   color:#fff;
   border:none;
-  padding:12px 20px;
+  padding:10px 18px;
   border-radius:999px;
   cursor:pointer;
 }
@@ -58,6 +58,7 @@ button{
 }
 
 .card{
+  position:relative;
   background:#fff;
   border-radius:20px;
   overflow:hidden;
@@ -68,9 +69,38 @@ button{
   width:100%;
   height:200px;
   object-fit:cover;
+  cursor:pointer;
 }
 
-.text{padding:14px;}
+.delete{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:#fff;
+  border:none;
+  border-radius:50%;
+  width:30px;
+  height:30px;
+  cursor:pointer;
+}
+
+.text{padding:14px}
+
+/* MODAL */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.8);
+  justify-content:center;
+  align-items:center;
+}
+
+.modal img{
+  max-width:90%;
+  max-height:90%;
+  border-radius:20px;
+}
 </style>
 </head>
 
@@ -78,108 +108,84 @@ button{
 
 <header>
   <h1>💖 ความทรงจำของเรา</h1>
-  <p id="anniversary"></p>
-  <p id="countdown"></p>
 </header>
 
 <div class="container">
 
+<!-- ✅ FORM POST -->
 <div class="form-box">
-  <input type="file" id="imageInput" accept="image/*">
-  <textarea id="textInput" placeholder="เขียนความทรงจำ..."></textarea>
-  <button onclick="addMemory()">บันทึก</button>
+  <form id="memoryForm"
+        action="https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec"
+        method="POST"
+        enctype="multipart/form-data"
+        target="hidden_iframe"
+        onsubmit="afterSubmit()">
+
+    <input type="file" name="image" accept="image/*" required>
+    <textarea name="text" placeholder="เขียนความทรงจำ..."></textarea>
+    <button type="submit">บันทึก</button>
+  </form>
 </div>
 
 <div class="gallery" id="gallery"></div>
+</div>
 
+<iframe name="hidden_iframe" style="display:none"></iframe>
+
+<!-- MODAL -->
+<div class="modal" id="modal" onclick="closeModal()">
+  <img id="modalImg">
 </div>
 
 <script>
 /* ===== CONFIG ===== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbyxmqOjWHyHcTpr1fg71d5fguQ8zHsdDMu68v0U-fXuLEC9kx4aKmsWdmajsopqpzIt5w/exec';
-const gallery = document.getElementById('gallery');
 
-/* ===== ANNIVERSARY ===== */
-const startDate = new Date(2022,10,18);
-
-function updateAnniversary(){
-  const now = new Date();
-  let years = now.getFullYear() - startDate.getFullYear();
-  if(now < new Date(now.getFullYear(),10,18)) years--;
-
-  const last = new Date(startDate.getFullYear()+years,10,18);
-  const diff = now-last;
-
-  document.getElementById('anniversary').textContent =
-   `คบกันมา ${years} ปี ${Math.floor(diff/86400000)} วัน`;
-
-  const next = new Date(last.getFullYear()+1,10,18);
-  const left = next-now;
-  document.getElementById('countdown').textContent =
-   `อีก ${Math.floor(left/86400000)} วัน จะครบรอบปีหน้า 💕`;
+/* ===== AFTER SUBMIT ===== */
+function afterSubmit(){
+  setTimeout(() => {
+    document.getElementById('memoryForm').reset();
+    loadFromAPI();
+  }, 1200);
 }
-setInterval(updateAnniversary,1000);
-updateAnniversary();
 
-/* ===== JSONP ===== */
+/* ===== JSONP LOAD ===== */
 window.loadMemories = function(data){
-  gallery.innerHTML='';
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = '';
+
   data.reverse().forEach(d=>{
-    const c=document.createElement('div');
-    c.className='card';
-    c.innerHTML=`<img src="${d.image}"><div class="text">${d.text}</div>`;
+    const c = document.createElement('div');
+    c.className = 'card';
+    c.innerHTML = `
+      <img src="${d.image}" onclick="openModal(this.src)">
+      <div class="text">${d.text}</div>
+    `;
     gallery.appendChild(c);
   });
 };
 
 function loadFromAPI(){
-  const s=document.createElement('script');
-  s.src=API_URL+'?callback=loadMemories';
+  const old = document.getElementById('jsonp');
+  if(old) old.remove();
+
+  const s = document.createElement('script');
+  s.id = 'jsonp';
+  s.src = API_URL + '?callback=loadMemories';
   document.body.appendChild(s);
 }
 
-/* ===== IMAGE COMPRESS ===== */
-function compressImage(file){
-  return new Promise(res=>{
-    const r=new FileReader();
-    r.onload=e=>{
-      const img=new Image();
-      img.onload=()=>{
-        const c=document.createElement('canvas');
-        const scale=Math.min(1,800/img.width);
-        c.width=img.width*scale;
-        c.height=img.height*scale;
-        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-        res(c.toDataURL('image/jpeg',0.7));
-      };
-      img.src=e.target.result;
-    };
-    r.readAsDataURL(file);
-  });
+/* ===== MODAL ===== */
+function openModal(src){
+  modal.style.display = 'flex';
+  modalImg.src = src;
 }
-
-/* ===== ADD MEMORY ===== */
-window.addMemory = async function(){
-  const img=document.getElementById('imageInput').files[0];
-  if(!img){alert('เลือกรูปก่อน');return;}
-
-  const imageData=await compressImage(img);
-  fetch(API_URL,{
-    method:'POST',
-    body:JSON.stringify({
-      image:imageData,
-      text:document.getElementById('textInput').value
-    })
-  }).then(()=>{
-    loadFromAPI();
-    document.getElementById('imageInput').value='';
-    document.getElementById('textInput').value='';
-  });
-};
+function closeModal(){
+  modal.style.display = 'none';
+}
 
 loadFromAPI();
 </script>
 
 </body>
 </html>
-
