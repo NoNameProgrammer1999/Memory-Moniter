@@ -1,5 +1,5 @@
 // *** เปลี่ยนลิงก์ Apps Script ของคุณที่นี่ ***
-const APPSSCRIPT_URL = "https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec";
+const APPSSCRIPT_URL = "https://script.google.com/macros/s/AKfycbxP4jjd0vbBHVJsOjjDA7uf5LjlaiWasopIeMZW5DNHK2fpVLSVFz2SvkAki_-_hkS9Qw/exec";
 
 // ------------------------------------
 // 1. ฟังก์ชันดึงข้อมูลรูปภาพและแสดงผล
@@ -182,3 +182,4 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndDisplayAnniversary();
     fetchAndDisplayPhotos();
 });
+
