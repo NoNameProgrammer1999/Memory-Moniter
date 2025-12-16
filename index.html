@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml"
 href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='70%' text-anchor='middle' font-size='80'>❤️</text></svg>">
 
-<title>Memory Moniter</title>
+<title>Granary Love 💖</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap');
@@ -33,7 +33,7 @@ header{
   box-shadow:0 8px 24px rgba(0,0,0,.06);
 }
 
-.form-box input,textarea{
+input,textarea{
   width:100%;
   margin-bottom:12px;
   padding:10px;
@@ -45,7 +45,7 @@ button{
   background:#e97aa2;
   color:#fff;
   border:none;
-  padding:12px 20px;
+  padding:10px 18px;
   border-radius:999px;
   cursor:pointer;
 }
@@ -58,6 +58,7 @@ button{
 }
 
 .card{
+  position:relative;
   background:#fff;
   border-radius:20px;
   overflow:hidden;
@@ -68,9 +69,40 @@ button{
   width:100%;
   height:200px;
   object-fit:cover;
+  cursor:pointer;
 }
 
-.text{padding:14px;}
+.delete{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:#fff;
+  border:none;
+  border-radius:50%;
+  width:30px;
+  height:30px;
+  cursor:pointer;
+  font-size:16px;
+}
+
+.text{padding:14px}
+
+/* ===== MODAL ===== */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.8);
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+
+.modal img{
+  max-width:90%;
+  max-height:90%;
+  border-radius:20px;
+}
 </style>
 </head>
 
@@ -91,12 +123,16 @@ button{
 </div>
 
 <div class="gallery" id="gallery"></div>
+</div>
 
+<!-- Modal -->
+<div class="modal" id="modal" onclick="closeModal()">
+  <img id="modalImg">
 </div>
 
 <script>
 /* ===== CONFIG ===== */
-const API_URL = 'https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec';
+const API_URL = 'ใส่_URL_Apps_Script_ของคุณ';
 const gallery = document.getElementById('gallery');
 
 /* ===== ANNIVERSARY ===== */
@@ -105,29 +141,39 @@ const startDate = new Date(2022,10,18);
 function updateAnniversary(){
   const now = new Date();
   let years = now.getFullYear() - startDate.getFullYear();
-  if(now < new Date(now.getFullYear(),10,18)) years--;
+  const thisYear = new Date(now.getFullYear(),10,18);
+  if(now < thisYear) years--;
 
   const last = new Date(startDate.getFullYear()+years,10,18);
   const diff = now-last;
 
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor(diff/3600000)%24;
+  const m = Math.floor(diff/60000)%60;
+  const s = Math.floor(diff/1000)%60;
+
   document.getElementById('anniversary').textContent =
-   `คบกันมา ${years} ปี ${Math.floor(diff/86400000)} วัน`;
+    `คบกันมา ${years} ปี ${d} วัน ${h} ชม. ${m} นาที ${s} วิ`;
 
   const next = new Date(last.getFullYear()+1,10,18);
   const left = next-now;
   document.getElementById('countdown').textContent =
-   `อีก ${Math.floor(left/86400000)} วัน จะครบรอบปีหน้า 💕`;
+    `🎉 อีก ${Math.floor(left/86400000)} วัน จะครบรอบปีหน้า`;
 }
 setInterval(updateAnniversary,1000);
 updateAnniversary();
 
-/* ===== JSONP ===== */
+/* ===== JSONP LOAD ===== */
 window.loadMemories = function(data){
   gallery.innerHTML='';
   data.reverse().forEach(d=>{
     const c=document.createElement('div');
     c.className='card';
-    c.innerHTML=`<img src="${d.image}"><div class="text">${d.text}</div>`;
+    c.innerHTML=`
+      <button class="delete" onclick="deleteMemory('${d.id}')">🗑</button>
+      <img src="${d.image}" onclick="openModal(this.src)">
+      <div class="text">${d.text}</div>
+    `;
     gallery.appendChild(c);
   });
 };
@@ -138,7 +184,7 @@ function loadFromAPI(){
   document.body.appendChild(s);
 }
 
-/* ===== IMAGE COMPRESS ===== */
+/* ===== ADD ===== */
 function compressImage(file){
   return new Promise(res=>{
     const r=new FileReader();
@@ -158,7 +204,6 @@ function compressImage(file){
   });
 }
 
-/* ===== ADD MEMORY ===== */
 window.addMemory = async function(){
   const img=document.getElementById('imageInput').files[0];
   if(!img){alert('เลือกรูปก่อน');return;}
@@ -170,16 +215,26 @@ window.addMemory = async function(){
       image:imageData,
       text:document.getElementById('textInput').value
     })
-  }).then(()=>{
-    loadFromAPI();
-    document.getElementById('imageInput').value='';
-    document.getElementById('textInput').value='';
-  });
+  }).then(loadFromAPI);
 };
+
+/* ===== DELETE ===== */
+function deleteMemory(id){
+  if(!confirm('ลบความทรงจำนี้?')) return;
+  fetch(API_URL+'?id='+id,{method:'DELETE'}).then(loadFromAPI);
+}
+
+/* ===== MODAL ===== */
+function openModal(src){
+  document.getElementById('modalImg').src=src;
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){
+  document.getElementById('modal').style.display='none';
+}
 
 loadFromAPI();
 </script>
 
 </body>
 </html>
-
