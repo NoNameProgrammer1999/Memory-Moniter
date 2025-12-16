@@ -22,7 +22,7 @@ updateCount();
 let gallery = [];
 
 async function loadGallery() {
-    const url = "LINK_GOOGLE_SHEET_JSON"; // ใส่ลิงก์ Google Sheet JSON
+    const url = "https://script.google.com/macros/s/AKfycbyxmqOjWHyHcTpr1fg71d5fguQ8zHsdDMu68v0U-fXuLEC9kx4aKmsWdmajsopqpzIt5w/exec"; // ใส่ลิงก์ Google Sheet JSON
     const res = await fetch(url);
     const data = await res.json();
     gallery = data.map(row => ({
@@ -70,7 +70,7 @@ function addImage() {
 
 // บันทึกลง Google Sheet ผ่าน Google Apps Script
 function saveGallery() {
-    fetch('LINK_GOOGLE_APPS_SCRIPT', {
+    fetch('https://script.google.com/macros/s/AKfycbyxmqOjWHyHcTpr1fg71d5fguQ8zHsdDMu68v0U-fXuLEC9kx4aKmsWdmajsopqpzIt5w/exec', {
         method: 'POST',
         body: JSON.stringify(gallery)
     });
