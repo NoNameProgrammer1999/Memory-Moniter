@@ -1,36 +1,45 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
-<title>Our Memory 🌸</title>
-<link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Love Story - 日記</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header class="header">
+        <h1>💕 Our Love Story - 私たちの日記 💕</h1>
+        <div id="anniversary-counter" class="counter-box">
+            <p><strong>💖 ครบรอบกันมา:</strong> <span id="days-since">...</span> วัน</p>
+            <p><strong>⏳ ครบรอบปีนี้อีก:</strong> <span id="countdown-days">...</span> วัน</p>
+        </div>
+    </header>
 
+    <main class="container">
+        <section class="add-photo-section">
+            <h2>✨ เพิ่มความทรงจำใหม่</h2>
+            <form id="add-photo-form">
+                <input type="text" id="add-image-url" placeholder="ลิงก์รูปภาพ (Drive uc?id=...)" required>
+                <input type="text" id="add-caption" placeholder="คำอธิบายภาพ">
+                <input type="date" id="add-date">
+                <button type="submit">เพิ่มรูปภาพ</button>
+            </form>
+        </section>
+        
+        <section id="photo-gallery" class="gallery"></section>
+    </main>
 
-<header>
-<h1>🌸 Our Memory 🌸</h1>
-<p id="together"></p>
-<p id="countdown"></p>
-</header>
+    <footer class="footer">
+        <p>© 2025 Love Memory. Made with ❤️</p>
+    </footer>
 
+    <div id="image-modal" class="modal">
+        <span class="close-btn">&times;</span>
+        <img class="modal-content" id="expanded-img">
+        <div id="caption-text"></div>
+    </div>
 
-<section class="upload">
-<input type="file" id="image" accept="image/*" />
-<input type="text" id="text" placeholder="เขียนคำอธิบายความทรงจำ..." />
-<button onclick="upload()">เพิ่มความทรงจำ</button>
-</section>
-
-
-<section id="gallery" class="gallery"></section>
-
-
-<!-- Modal -->
-<div id="modal" class="modal" onclick="closeModal()">
-<img id="modalImg" />
-</div>
-
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
