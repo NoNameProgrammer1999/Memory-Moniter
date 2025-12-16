@@ -1,125 +1,36 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💖 ความทรงจำของเรา</title>
-
-<style>
-body{
-  font-family:sans-serif;
-  background:#fff0f5;
-  margin:0;
-}
-header{text-align:center;padding:20px}
-.container{max-width:900px;margin:auto;padding:20px}
-.form-box{background:#fff;padding:20px;border-radius:16px}
-input,textarea{width:100%;margin-bottom:10px;padding:10px}
-button{background:#e97aa2;color:#fff;border:none;padding:10px 20px;border-radius:999px}
-.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:30px}
-.card{position:relative;background:#fff;border-radius:16px;overflow:hidden}
-.card img{width:100%;height:200px;object-fit:cover;cursor:pointer}
-.delete{position:absolute;top:8px;right:8px;background:#fff;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer}
-.text{padding:10px}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);justify-content:center;align-items:center}
-.modal img{max-width:90%;max-height:90%}
-</style>
+<meta charset="UTF-8" />
+<title>Our Memory 🌸</title>
+<link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
+
 <header>
-  <h1>💖 ความทรงจำของเรา</h1>
+<h1>🌸 Our Memory 🌸</h1>
+<p id="together"></p>
+<p id="countdown"></p>
 </header>
 
-<div class="container">
 
-<!-- ADD FORM -->
-<div class="form-box">
-<form id="memoryForm"
-      action="https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec"
-      method="POST"
-      enctype="multipart/form-data"
-      target="hidden_iframe"
-      onsubmit="afterSubmit()">
+<section class="upload">
+<input type="file" id="image" accept="image/*" />
+<input type="text" id="text" placeholder="เขียนคำอธิบายความทรงจำ..." />
+<button onclick="upload()">เพิ่มความทรงจำ</button>
+</section>
 
-  <input type="file" name="image" accept="image/*" required>
-  <textarea name="text" placeholder="เขียนความทรงจำ..."></textarea>
-  <button type="submit">บันทึก</button>
-</form>
+
+<section id="gallery" class="gallery"></section>
+
+
+<!-- Modal -->
+<div id="modal" class="modal" onclick="closeModal()">
+<img id="modalImg" />
 </div>
 
-<div class="gallery" id="gallery"></div>
-</div>
 
-<!-- DELETE FORM -->
-<form id="deleteForm"
-      action="https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec"
-      method="POST"
-      target="hidden_iframe"
-      style="display:none">
-  <input name="action" value="delete">
-  <input name="id" id="deleteId">
-</form>
-
-<iframe name="hidden_iframe" style="display:none"></iframe>
-
-<!-- MODAL -->
-<div class="modal" id="modal" onclick="closeModal()">
-  <img id="modalImg">
-</div>
-
-<script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbz44wxO2IImpFOxM9D_kRYnGr8eKZjxejBz2w_1Q-bwcFu0LHnyoIvUGzH2scHmAcANQA/exec';
-
-function afterSubmit(){
-  setTimeout(()=>{
-    document.getElementById('memoryForm').reset();
-    loadFromAPI();
-  },1200);
-}
-
-window.loadMemories = function(data){
-  const g=document.getElementById('gallery');
-  g.innerHTML='';
-  data.reverse().forEach(d=>{
-    const c=document.createElement('div');
-    c.className='card';
-    c.innerHTML=`
-      <button class="delete" onclick="deleteMemory('${d.id}')">🗑</button>
-      <img src="${d.image}" onclick="openModal('${d.image}')">
-      <div class="text">${d.text||''}</div>
-    `;
-    g.appendChild(c);
-  });
-}
-
-function loadFromAPI(){
-  const old=document.getElementById('jsonp');
-  if(old) old.remove();
-  const s=document.createElement('script');
-  s.id='jsonp';
-  s.src=API_URL+'?callback=loadMemories';
-  document.body.appendChild(s);
-}
-
-function deleteMemory(id){
-  if(!confirm('ลบรูปนี้?'))return;
-  document.getElementById('deleteId').value=id;
-  document.getElementById('deleteForm').submit();
-  setTimeout(loadFromAPI,1200);
-}
-
-function openModal(src){
-  modal.style.display='flex';
-  modalImg.src=src;
-}
-function closeModal(){
-  modal.style.display='none';
-}
-
-loadFromAPI();
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
